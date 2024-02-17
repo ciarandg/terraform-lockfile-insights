@@ -12,7 +12,7 @@ import (
 )
 
 func childByType(parent *sitter.Node, childType string) (*sitter.Node, error) {
-	childCount := int(parent.ChildCount())
+	childCount := int(parent.NamedChildCount())
 	for i := 0; i < childCount; i++ {
 		child := parent.NamedChild(i)
 		if child.Type() == childType {
@@ -24,10 +24,10 @@ func childByType(parent *sitter.Node, childType string) (*sitter.Node, error) {
 
 func providerBlocks(bodyBlock *sitter.Node, sourceCode []byte) []*sitter.Node {
 	var out []*sitter.Node
-	childCount := int(bodyBlock.ChildCount())
+	childCount := int(bodyBlock.NamedChildCount())
 	for i := 0; i < childCount; i++ {
 		child := bodyBlock.NamedChild(i)
-		if child.ChildCount() > 0 {
+		if child.NamedChildCount() > 0 {
 			identifier := child.NamedChild(0)
 			if identifier.Content(sourceCode) == "provider" {
 				out = append(out, child)
