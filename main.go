@@ -23,10 +23,10 @@ func main() {
 
 	n := tree.RootNode()
 
-	fmt.Println(n) // (program (lexical_declaration (variable_declarator (identifier) (number))))
+	fmt.Println(n)
 	
 	child := n.NamedChild(0)
-	fmt.Println(child.Type()) // lexical_declaration
-	fmt.Println(child.StartByte()) // 0
-	fmt.Println(child.EndByte()) // 9
+	fmt.Println(child.Type())
+	fmt.Println(child.StartByte())
+	fmt.Println(child.EndByte())
 }
