@@ -20,6 +20,21 @@ func childByType(parent *sitter.Node, childType string) (*sitter.Node, error) {
 	return nil, fmt.Errorf("could not find child of type %s", childType)
 }
 
+func providerBlocks(bodyBlock *sitter.Node, sourceCode []byte) []*sitter.Node {
+	var out []*sitter.Node
+	childCount := int(bodyBlock.ChildCount())
+	for i := 0; i < childCount; i++ {
+		child := bodyBlock.NamedChild(i)
+		if child.ChildCount() > 0 {
+			identifier := child.NamedChild(0)
+			if identifier.Content(sourceCode) == "provider" {
+				out = append(out, child)
+			}
+		}
+	}
+	return out
+}
+
 func main() {
 	filePath := "example.lock.hcl"
 	sourceCode, err := os.ReadFile(filePath)
@@ -51,7 +66,9 @@ func main() {
 		fmt.Println("Error reading file:", err)
 		os.Exit(1)
 	}
-	fmt.Println(body.Type())
-	fmt.Println(body)
-	   // find provider blocks
+
+	providerBlocks := providerBlocks(body, sourceCode)
+	for i := 0; i < len(providerBlocks); i++ {
+		fmt.Println(providerBlocks[i].Content(sourceCode))
+	}
 }
