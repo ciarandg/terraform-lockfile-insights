@@ -1,4 +1,4 @@
-module provider-finder
+module github.com/ciarandg/provider-finder
 
 go 1.21.5
 
