@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	sitter "github.com/smacker/go-tree-sitter"
 	"github.com/smacker/go-tree-sitter/hcl"
@@ -33,6 +35,14 @@ func providerBlocks(bodyBlock *sitter.Node, sourceCode []byte) []*sitter.Node {
 		}
 	}
 	return out
+}
+
+func providerName(providerBlock *sitter.Node, sourceCode []byte) (string, error) {
+	if int(providerBlock.NamedChildCount()) < 1 {
+		return "", errors.New("parsing error: expected at least 1 named child in provider block")
+	}
+	nameInQuotes := providerBlock.NamedChild(1).Content(sourceCode)
+	return strings.Trim(nameInQuotes, `"`), nil
 }
 
 func main() {
@@ -69,6 +79,11 @@ func main() {
 
 	providerBlocks := providerBlocks(body, sourceCode)
 	for i := 0; i < len(providerBlocks); i++ {
-		fmt.Println(providerBlocks[i].Content(sourceCode))
+		name, err := providerName(providerBlocks[i], sourceCode)
+		if err != nil {
+			fmt.Println("Error reading file:", err)
+			os.Exit(1)
+		}
+		fmt.Println(name)
 	}
 }
