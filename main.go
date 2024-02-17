@@ -76,17 +76,6 @@ func main() {
 
 	n := tree.RootNode()
 
-	// body := n.NamedChild(2)
-	// providerBlock := body.NamedChild(2)
-	// // providerName := providerBlock.NamedChild(1)
-	// providerContents := providerBlock.NamedChild(3)
-	// providerVersionStatement := providerContents.NamedChild(0)
-	// providerVersion := providerVersionStatement.NamedChild(1)
-	// fmt.Println(providerVersion.Type())
-	// fmt.Println(providerVersion.Content(sourceCode))
-	// fmt.Println(providerVersion)
-
-	// find body block
 	body, err := childByType(n, "body")
 	if err != nil {
 		fmt.Println("Error reading file:", err)
