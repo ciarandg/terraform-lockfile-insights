@@ -5,14 +5,14 @@ import (
 	"fmt"
 
 	sitter "github.com/smacker/go-tree-sitter"
-	"github.com/smacker/go-tree-sitter/javascript"
+	"github.com/smacker/go-tree-sitter/hcl"
 )
 
 func main() {
 	parser := sitter.NewParser()
-	parser.SetLanguage(javascript.GetLanguage())
+	parser.SetLanguage(hcl.GetLanguage())
 
-	sourceCode := []byte("let a = 1")
+	sourceCode := []byte("provider \"foo\" \"bar\" {}")
 	tree, _ := parser.ParseCtx(context.Background(), nil, sourceCode)
 
 	n := tree.RootNode()
