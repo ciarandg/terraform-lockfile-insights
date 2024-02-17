@@ -38,11 +38,27 @@ func providerBlocks(bodyBlock *sitter.Node, sourceCode []byte) []*sitter.Node {
 }
 
 func providerName(providerBlock *sitter.Node, sourceCode []byte) (string, error) {
-	if int(providerBlock.NamedChildCount()) < 1 {
-		return "", errors.New("parsing error: expected at least 1 named child in provider block")
+	if int(providerBlock.NamedChildCount()) < 2 {
+		return "", errors.New("expected at least 2 named children in provider block")
 	}
 	nameInQuotes := providerBlock.NamedChild(1).Content(sourceCode)
 	return strings.Trim(nameInQuotes, `"`), nil
+}
+
+func providerVersion(providerBlock *sitter.Node, sourceCode []byte) (string, error) {
+	if int(providerBlock.NamedChildCount()) < 4 {
+		return "", errors.New("expected at least 4 named children in provider block")
+	}
+	blockBody := providerBlock.NamedChild(3)
+	if int(blockBody.NamedChildCount()) < 1 {
+		return "", errors.New("expected at least 1 named child in provider block body")
+	}
+	versionStatement := blockBody.NamedChild(0)
+	if int(versionStatement.NamedChildCount()) < 2 {
+		return "", errors.New("expected at least 2 named children in provider version statement")
+	}
+	version := versionStatement.NamedChild(1).Content(sourceCode)
+	return strings.Trim(version, `"`), nil
 }
 
 func main() {
@@ -79,11 +95,20 @@ func main() {
 
 	providerBlocks := providerBlocks(body, sourceCode)
 	for i := 0; i < len(providerBlocks); i++ {
-		name, err := providerName(providerBlocks[i], sourceCode)
+		block := providerBlocks[i]
+
+		name, err := providerName(block, sourceCode)
 		if err != nil {
 			fmt.Println("Error reading file:", err)
 			os.Exit(1)
 		}
 		fmt.Println(name)
+
+		version, err := providerVersion(block, sourceCode)
+		if err != nil {
+			fmt.Println("Error reading file:", err)
+			os.Exit(1)
+		}
+		fmt.Println(version)
 	}
 }
