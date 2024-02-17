@@ -23,10 +23,16 @@ func main() {
 
 	n := tree.RootNode()
 
-	fmt.Println(n)
-	
-	child := n.NamedChild(0)
-	fmt.Println(child.Type())
-	fmt.Println(child.StartByte())
-	fmt.Println(child.EndByte())
+	body := n.NamedChild(2)
+	providerBlock := body.NamedChild(2)
+	// providerName := providerBlock.NamedChild(1)
+	providerContents := providerBlock.NamedChild(3)
+	providerVersionStatement := providerContents.NamedChild(0)
+	providerVersion := providerVersionStatement.NamedChild(1)
+	fmt.Println(providerVersion.Type())
+	fmt.Println(providerVersion.Content(sourceCode))
+	fmt.Println(providerVersion)
+
+	// find body block
+	   // find provider blocks
 }
