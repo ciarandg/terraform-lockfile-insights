@@ -3,7 +3,6 @@ package lockfile
 import (
 	"context"
 	"errors"
-	"fmt"
 	"os"
 	"strings"
 
@@ -48,9 +47,9 @@ func bodyBlock(sourceCode []byte) (*sitter.Node, error) {
 
 	n := tree.RootNode()
 
-	body, err := childByType(n, "body")
-	if err != nil {
-		return nil, err
+	body := childByType(n, "body")
+	if body == nil {
+		return nil, errors.New("failed to find body block in lockfile source code")
 	}
 	return body, nil
 }
@@ -74,15 +73,30 @@ func providerBlocks(sourceCode []byte, bodyBlock *sitter.Node) (map[string]Provi
 	return out, nil
 }
 
-func childByType(parent *sitter.Node, childType string) (*sitter.Node, error) {
+func childByType(parent *sitter.Node, childType string) *sitter.Node {
 	childCount := int(parent.NamedChildCount())
 	for i := 0; i < childCount; i++ {
 		child := parent.NamedChild(i)
 		if child.Type() == childType {
-			return child, nil
+			return child
 		}
 	}
-	return nil, fmt.Errorf("could not find child of type %s", childType)
+	return nil
+}
+
+func childByTypeRec(parent *sitter.Node, childType string) *sitter.Node {
+	childCount := int(parent.NamedChildCount())
+	for i := 0; i < childCount; i++ {
+		match := childByTypeRec(parent.NamedChild(i), childType)
+		if match != nil {
+			return match
+		}
+	}
+	match := childByType(parent, childType)
+	if match != nil {
+		return match
+	}
+	return nil
 }
 
 func childByPredicate(parent *sitter.Node, predicate func (*sitter.Node) bool) *sitter.Node {
@@ -105,13 +119,15 @@ func providerName(providerBlock *sitter.Node, sourceCode []byte) (string, error)
 }
 
 func providerVersion(providerBlock *sitter.Node, sourceCode []byte) (string, error) {
-	blockBody, err := childByType(providerBlock, "body")
-	if err != nil {
-		return "", err
-	}
-	versionStatement := childByPredicate(blockBody, func (block *sitter.Node) bool {
+	isVersionStatement := func (block *sitter.Node) bool {
 		return block.NamedChildCount() == 2 && block.NamedChild(0).Content(sourceCode) == "version"
-	})
-	version := versionStatement.NamedChild(1).Content(sourceCode)
-	return strings.Trim(version, `"`), nil
+	}
+
+	blockBody := childByType(providerBlock, "body")
+	if blockBody == nil {
+		return "", errors.New("failed to find block body in provider block")
+	}
+	versionStatement := childByPredicate(blockBody, isVersionStatement)
+	versionLiteral := childByTypeRec(versionStatement.NamedChild(1), "template_literal")
+	return versionLiteral.Content(sourceCode), nil
 }
