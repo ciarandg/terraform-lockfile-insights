@@ -10,8 +10,8 @@
     ];
 
     perSystem = { config, system, ... }: {
-      packages.hello = nixpkgs.legacyPackages.${system}.hello;
-      packages.default = self.packages.${system}.hello;
+      packages.terraform-lockfile-insights = nixpkgs.legacyPackages.${system}.hello;
+      packages.default = self.packages.${system}.terraform-lockfile-insights;
     };
   };
 }
