@@ -16,7 +16,7 @@ type Lockfile struct {
 
 type ProviderBlock struct {
 	version string
-	contraints string
+	contraints string // optional, will be an empty string if not present
 	hashes []string
 }
 
@@ -65,7 +65,8 @@ func providerBlocks(sourceCode []byte, bodyBlock *sitter.Node) (map[string]Provi
 			if identifier.Content(sourceCode) == "provider" {
 				name, _ := providerName(child, sourceCode)
 				version, _ := providerVersion(child, sourceCode)
-				out[name] = ProviderBlock{version, "fake_constraint", []string{"fake_hash"}} // TODO fix stubs
+				constraints, _ := providerConstraints(child, sourceCode)
+				out[name] = ProviderBlock{version, constraints, []string{"fake_hash"}} // TODO fix stubs
 			}
 		}
 	}
@@ -130,4 +131,22 @@ func providerVersion(providerBlock *sitter.Node, sourceCode []byte) (string, err
 	versionStatement := childByPredicate(blockBody, isVersionStatement)
 	versionLiteral := childByTypeRec(versionStatement.NamedChild(1), "template_literal")
 	return versionLiteral.Content(sourceCode), nil
+}
+
+func providerConstraints(providerBlock *sitter.Node, sourceCode []byte) (string, error) {
+	isConstraintsStatement := func (block *sitter.Node) bool {
+		return block.NamedChildCount() == 2 && block.NamedChild(0).Content(sourceCode) == "constraints"
+	}
+
+	blockBody := childByType(providerBlock, "body")
+	if blockBody == nil {
+		return "", errors.New("failed to find block body in provider block")
+	}
+	constraintsStatement := childByPredicate(blockBody, isConstraintsStatement)
+	if constraintsStatement != nil {
+		constraintsLiteral := childByTypeRec(constraintsStatement.NamedChild(1), "template_literal")
+		content := constraintsLiteral.Content(sourceCode)
+		return content, nil
+	}
+	return "", nil
 }
