@@ -11,11 +11,67 @@ import (
 	"github.com/smacker/go-tree-sitter/hcl"
 )
 
-type LockfileSummary map[string]ProviderSummary
+type Lockfile struct {
+	ProviderBlocks map[string]ProviderBlock
+}
 
-type ProviderSummary struct {
+type ProviderBlock struct {
 	version string
-	// constraints string
+	contraints string
+	hashes []string
+}
+
+func NewLockfile(filePath string) (Lockfile, error) {
+	sourceCode, err := os.ReadFile(filePath)
+	if err != nil {
+		return Lockfile{}, err
+	}
+
+	bodyBlock, err := bodyBlock(sourceCode)
+	if err != nil {
+		return Lockfile{}, err
+	}
+
+	providerBlocks, err := providerBlocks(sourceCode, bodyBlock)
+	if err != nil {
+		return Lockfile{}, err
+	}
+
+	return Lockfile{providerBlocks}, nil
+}
+
+func bodyBlock(sourceCode []byte) (*sitter.Node, error) {
+	parser := sitter.NewParser()
+	parser.SetLanguage(hcl.GetLanguage())
+
+	tree, _ := parser.ParseCtx(context.Background(), nil, sourceCode)
+
+	n := tree.RootNode()
+
+	body, err := childByType(n, "body")
+	if err != nil {
+		return nil, err
+	}
+	return body, nil
+}
+
+func providerBlocks(sourceCode []byte, bodyBlock *sitter.Node) (map[string]ProviderBlock, error) {
+	out := map[string]ProviderBlock{}
+
+	childCount := int(bodyBlock.NamedChildCount())
+	for i := 0; i < childCount; i++ {
+		child := bodyBlock.NamedChild(i)
+		if child.NamedChildCount() > 0 {
+			identifier := child.NamedChild(0)
+			if identifier.Content(sourceCode) == "provider" {
+				name, _ := providerName(child, sourceCode)
+				version, _ := providerVersion(child, sourceCode)
+				out[name] = ProviderBlock{version, "fake_constraint", []string{"fake_hash"}} // TODO fix stubs
+			}
+		}
+	}
+
+	return out, nil
 }
 
 func childByType(parent *sitter.Node, childType string) (*sitter.Node, error) {
@@ -27,21 +83,6 @@ func childByType(parent *sitter.Node, childType string) (*sitter.Node, error) {
 		}
 	}
 	return nil, fmt.Errorf("could not find child of type %s", childType)
-}
-
-func providerBlocks(bodyBlock *sitter.Node, sourceCode []byte) []*sitter.Node {
-	var out []*sitter.Node
-	childCount := int(bodyBlock.NamedChildCount())
-	for i := 0; i < childCount; i++ {
-		child := bodyBlock.NamedChild(i)
-		if child.NamedChildCount() > 0 {
-			identifier := child.NamedChild(0)
-			if identifier.Content(sourceCode) == "provider" {
-				out = append(out, child)
-			}
-		}
-	}
-	return out
 }
 
 func providerName(providerBlock *sitter.Node, sourceCode []byte) (string, error) {
@@ -66,45 +107,4 @@ func providerVersion(providerBlock *sitter.Node, sourceCode []byte) (string, err
 	}
 	version := versionStatement.NamedChild(1).Content(sourceCode)
 	return strings.Trim(version, `"`), nil
-}
-
-
-func GenerateLockfileSummary(filePath string) (LockfileSummary, error) {
-	out := LockfileSummary{}
-
-	sourceCode, err := os.ReadFile(filePath)
-	if err != nil {
-		return nil, err
-	}
-
-	parser := sitter.NewParser()
-	parser.SetLanguage(hcl.GetLanguage())
-
-	tree, _ := parser.ParseCtx(context.Background(), nil, sourceCode)
-
-	n := tree.RootNode()
-
-	body, err := childByType(n, "body")
-	if err != nil {
-		return nil, err
-	}
-
-	providerBlocks := providerBlocks(body, sourceCode)
-	for i := 0; i < len(providerBlocks); i++ {
-		block := providerBlocks[i]
-
-		name, err := providerName(block, sourceCode)
-		if err != nil {
-			return nil, err
-		}
-
-		version, err := providerVersion(block, sourceCode)
-		if err != nil {
-			return nil, err
-		}
-
-		out[name] = ProviderSummary{version}
-	}
-
-	return out, nil
 }

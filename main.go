@@ -9,10 +9,10 @@ import (
 
 func main() {
 	filePath := "example.lock.hcl"
-	summary, err := lockfile.GenerateLockfileSummary(filePath)
+	lockfile, err := lockfile.NewLockfile(filePath)
 	if err != nil {
-		fmt.Printf("Encountered an error while processing %s: %s\n", filePath, err)
+		fmt.Printf("Encountered an error while initializing lockfile %s: %s\n", filePath, err)
 		os.Exit(1)
 	}
-	fmt.Println(summary)
+	fmt.Println(lockfile.ProviderBlocks)
 }
