@@ -38,5 +38,10 @@ func main() {
 		lockfiles[filePath] = lockfile
 	}
 
-	fmt.Println(insights.GetInsights(lockfiles))
+	insights, err := insights.GetInsightsJson(lockfiles)
+	if err != nil {
+		fmt.Printf("Encountered an error while generating insights: %s\n", err)
+		os.Exit(1)
+	}
+	fmt.Println(insights)
 }

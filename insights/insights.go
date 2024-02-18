@@ -1,11 +1,14 @@
 package insights
 
 import (
+	"encoding/json"
+	"errors"
+
 	"github.com/ciarandg/provider-finder/lockfile"
 )
 
 type Insights struct {
-	versions map[string][]string
+	Versions map[string][]string `json:"versions"`
 }
 
 func GetInsights(lockfiles map[string]lockfile.Lockfile) map[string]Insights {
@@ -18,16 +21,25 @@ func GetInsights(lockfiles map[string]lockfile.Lockfile) map[string]Insights {
 				val = Insights{map[string][]string{}}
 			}
 
-			val2, ok2 := val.versions[provider.Version]
+			val2, ok2 := val.Versions[provider.Version]
 			if !ok2 {
 				val2 = []string{}
 			}
 			val2 = append(val2, filePath)
-			val.versions[provider.Version] = val2
+			val.Versions[provider.Version] = val2
 			
 			out[name] = val
 		}
 	}
 
 	return out
+}
+
+func GetInsightsJson(lockfiles map[string]lockfile.Lockfile) (string, error) {
+	insights := GetInsights(lockfiles)
+	jsonData, err := json.Marshal(insights)
+	if err != nil {
+		return "", errors.New("could not marshal JSON")
+	}
+	return string(jsonData), nil
 }
