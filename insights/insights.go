@@ -43,3 +43,12 @@ func GetInsightsJson(lockfiles map[string]lockfile.Lockfile) (string, error) {
 	}
 	return string(jsonData), nil
 }
+
+func GetInsightsJsonPretty(lockfiles map[string]lockfile.Lockfile) (string, error) {
+	insights := GetInsights(lockfiles)
+	jsonData, err := json.MarshalIndent(insights, "", "  ")
+	if err != nil {
+		return "", errors.New("could not marshal JSON")
+	}
+	return string(jsonData), nil
+}

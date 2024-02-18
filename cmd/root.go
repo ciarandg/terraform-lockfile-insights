@@ -10,6 +10,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var prettyPrint bool
+
 var rootCmd = &cobra.Command{
   Use:   "provider-finder",
   Short: "provider-finder will teach you about the contents of your Terraform lockfiles",
@@ -43,12 +45,23 @@ var rootCmd = &cobra.Command{
 		lockfiles[filePath] = lockfile
 	}
 
-	insights, err := insights.GetInsightsJson(lockfiles)
-	if err != nil {
-		fmt.Printf("Encountered an error while generating insights: %s\n", err)
-		os.Exit(1)
+	var results string
+	if prettyPrint {
+		i, err := insights.GetInsightsJsonPretty(lockfiles)
+		if err != nil {
+			fmt.Printf("Encountered an error while generating insights: %s\n", err)
+			os.Exit(1)
+		}
+		results = i
+	} else {
+		i, err := insights.GetInsightsJson(lockfiles)
+		if err != nil {
+			fmt.Printf("Encountered an error while generating insights: %s\n", err)
+			os.Exit(1)
+		}
+		results = i
 	}
-	fmt.Println(insights)
+	fmt.Println(results)
   },
 }
 
@@ -57,4 +70,8 @@ func Execute() {
     fmt.Fprintln(os.Stderr, err)
     os.Exit(1)
   }
+}
+
+func init() {
+	rootCmd.PersistentFlags().BoolVar(&prettyPrint, "pretty", false, "pretty print JSON output")
 }
