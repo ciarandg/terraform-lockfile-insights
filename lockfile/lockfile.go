@@ -3,6 +3,7 @@ package lockfile
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 
@@ -16,7 +17,7 @@ type Lockfile struct {
 
 type ProviderBlock struct {
 	version string
-	contraints string // optional, will be an empty string if not present
+	constraints string // optional, will be an empty string if not present
 	hashes []string
 }
 
@@ -66,10 +67,27 @@ func providerBlocks(sourceCode []byte, bodyBlock *sitter.Node) (map[string]Provi
 		if child.NamedChildCount() > 0 {
 			identifier := child.NamedChild(0)
 			if identifier.Content(sourceCode) == "provider" {
-				name, _ := providerName(child, sourceCode)
-				version, _ := providerVersion(child, sourceCode)
-				constraints, _ := providerConstraints(child, sourceCode)
-				hashes, _ := providerHashes(child, sourceCode)
+				name, err := providerName(child, sourceCode)
+				if err != nil {
+					return map[string]ProviderBlock{}, err
+				}
+				version, err := providerVersion(child, sourceCode)
+				if err != nil {
+					return map[string]ProviderBlock{}, err
+				}
+				constraints, err := providerConstraints(child, sourceCode)
+				if err != nil {
+					return map[string]ProviderBlock{}, err
+				}
+				hashes, err := providerHashes(child, sourceCode)
+				if err != nil {
+					return map[string]ProviderBlock{}, err
+				}
+
+				_, ok := out[name]
+				if ok {
+					return map[string]ProviderBlock{}, fmt.Errorf("lockfile contains duplicate provider name: %s", name)
+				}
 				out[name] = ProviderBlock{version, constraints, hashes}
 			}
 		}
@@ -145,6 +163,9 @@ func providerVersion(providerBlock *sitter.Node, sourceCode []byte) (string, err
 		return "", errors.New("failed to find block body in provider block")
 	}
 	versionStatement := childByPredicate(blockBody, isVersionStatement)
+	if versionStatement == nil {
+		return "", errors.New("failed to find a version statement in block body")
+	}
 	versionLiteral := childByTypeRec(versionStatement.NamedChild(1), "template_literal")
 	return versionLiteral.Content(sourceCode), nil
 }
@@ -177,6 +198,9 @@ func providerHashes(providerBlock *sitter.Node, sourceCode []byte) ([]string, er
 		return []string{}, errors.New("failed to find block body in provider block")
 	}
 	hashesStatement := childByPredicate(blockBody, isHashesStatement)
+	if hashesStatement == nil {
+		return []string{}, errors.New("failed to find a hashes statement in block body")
+	}
 	hashesTuple := hashesStatement.NamedChild(1).NamedChild(0).NamedChild(0)
 	hashExpressions := childrenByType(hashesTuple, "expression")
 	hashLiterals := []string{}
