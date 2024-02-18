@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/ciarandg/provider-finder/lockfile"
+	"github.com/ciarandg/terraform-lockfile-insights/lockfile"
 )
 
 type Insights struct {
