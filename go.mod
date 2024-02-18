@@ -1,4 +1,4 @@
-module github.com/ciarandg/provider-finder
+module github.com/ciarandg/terraform-lockfile-insights
 
 go 1.21.5
 

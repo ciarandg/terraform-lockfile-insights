@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ciarandg/provider-finder/filesystem"
-	"github.com/ciarandg/provider-finder/insights"
-	"github.com/ciarandg/provider-finder/lockfile"
+	"github.com/ciarandg/terraform-lockfile-insights/filesystem"
+	"github.com/ciarandg/terraform-lockfile-insights/insights"
+	"github.com/ciarandg/terraform-lockfile-insights/lockfile"
 	"github.com/spf13/cobra"
 )
 
 var prettyPrint bool
 
 var rootCmd = &cobra.Command{
-  Use:   "provider-finder",
-  Short: "provider-finder will teach you about the contents of your Terraform lockfiles",
+  Use:   "terraform-lockfile-insights",
+  Short: "terraform-lockfile-insights will teach you about the contents of your Terraform lockfiles",
   Long: `A tool for surfacing details about Terraform dependencies across a codebase containing many lockfiles`,
   Run: func(cmd *cobra.Command, args []string) {
 	var dirPath string
