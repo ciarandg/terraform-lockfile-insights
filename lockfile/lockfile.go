@@ -66,7 +66,8 @@ func providerBlocks(sourceCode []byte, bodyBlock *sitter.Node) (map[string]Provi
 				name, _ := providerName(child, sourceCode)
 				version, _ := providerVersion(child, sourceCode)
 				constraints, _ := providerConstraints(child, sourceCode)
-				out[name] = ProviderBlock{version, constraints, []string{"fake_hash"}} // TODO fix stubs
+				hashes, _ := providerHashes(child, sourceCode)
+				out[name] = ProviderBlock{version, constraints, hashes}
 			}
 		}
 	}
@@ -98,6 +99,18 @@ func childByTypeRec(parent *sitter.Node, childType string) *sitter.Node {
 		return match
 	}
 	return nil
+}
+
+func childrenByType(parent *sitter.Node, childType string) []*sitter.Node {
+	out := []*sitter.Node{}
+	childCount := int(parent.NamedChildCount())
+	for i := 0; i < childCount; i++ {
+		child := parent.NamedChild(i)
+		if child.Type() == childType {
+			out = append(out, child)
+		}
+	}
+	return out
 }
 
 func childByPredicate(parent *sitter.Node, predicate func (*sitter.Node) bool) *sitter.Node {
@@ -149,4 +162,24 @@ func providerConstraints(providerBlock *sitter.Node, sourceCode []byte) (string,
 		return content, nil
 	}
 	return "", nil
+}
+
+func providerHashes(providerBlock *sitter.Node, sourceCode []byte) ([]string, error) {
+	isHashesStatement := func (block *sitter.Node) bool {
+		return block.NamedChildCount() == 2 && block.NamedChild(0).Content(sourceCode) == "hashes"
+	}
+
+	blockBody := childByType(providerBlock, "body")
+	if blockBody == nil {
+		return []string{}, errors.New("failed to find block body in provider block")
+	}
+	hashesStatement := childByPredicate(blockBody, isHashesStatement)
+	hashesTuple := hashesStatement.NamedChild(1).NamedChild(0).NamedChild(0)
+	hashExpressions := childrenByType(hashesTuple, "expression")
+	hashLiterals := []string{}
+	for i := 0; i < len(hashExpressions); i++ {
+		literal := childByTypeRec(hashExpressions[i], "template_literal").Content(sourceCode)
+		hashLiterals = append(hashLiterals, literal)
+	}
+	return hashLiterals, nil
 }
