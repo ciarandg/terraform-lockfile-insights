@@ -85,6 +85,17 @@ func childByType(parent *sitter.Node, childType string) (*sitter.Node, error) {
 	return nil, fmt.Errorf("could not find child of type %s", childType)
 }
 
+func childByPredicate(parent *sitter.Node, predicate func (*sitter.Node) bool) *sitter.Node {
+	childCount := int(parent.NamedChildCount())
+	for i := 0; i < childCount; i++ {
+		child := parent.NamedChild(i)
+		if predicate(child) {
+			return child
+		}
+	}
+	return nil
+}
+
 func providerName(providerBlock *sitter.Node, sourceCode []byte) (string, error) {
 	if int(providerBlock.NamedChildCount()) < 2 {
 		return "", errors.New("expected at least 2 named children in provider block")
@@ -94,17 +105,13 @@ func providerName(providerBlock *sitter.Node, sourceCode []byte) (string, error)
 }
 
 func providerVersion(providerBlock *sitter.Node, sourceCode []byte) (string, error) {
-	if int(providerBlock.NamedChildCount()) < 4 {
-		return "", errors.New("expected at least 4 named children in provider block")
+	blockBody, err := childByType(providerBlock, "body")
+	if err != nil {
+		return "", err
 	}
-	blockBody := providerBlock.NamedChild(3)
-	if int(blockBody.NamedChildCount()) < 1 {
-		return "", errors.New("expected at least 1 named child in provider block body")
-	}
-	versionStatement := blockBody.NamedChild(0)
-	if int(versionStatement.NamedChildCount()) < 2 {
-		return "", errors.New("expected at least 2 named children in provider version statement")
-	}
+	versionStatement := childByPredicate(blockBody, func (block *sitter.Node) bool {
+		return block.NamedChildCount() == 2 && block.NamedChild(0).Content(sourceCode) == "version"
+	})
 	version := versionStatement.NamedChild(1).Content(sourceCode)
 	return strings.Trim(version, `"`), nil
 }
