@@ -1,6 +1,7 @@
 package lockfile
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -262,6 +263,32 @@ func TestNewLockfileInvalidNoHashes(t *testing.T) {
 
 func TestNewLockfileInvalidSingleQuoteStrings(t *testing.T) {
 	l, err := NewLockfile(contentsInvalidSingleQuoteStrings)
+	assert.NotNil(t, err)
+	assert.Equal(t, len(l.ProviderBlocks), 0)
+}
+
+func TestNewLockfileFromPath(t *testing.T) {
+  tmpFile, err := os.CreateTemp("/tmp", "TestNewLockfileFromPath")
+  assert.Nil(t, err)
+  tmpFile.Write(contentsSingleProvider)
+  tmpFile.Close()
+
+  l, err := NewLockfileFromPath(tmpFile.Name())
+	assert.Nil(t, err)
+	assert.Equal(t, len(l.ProviderBlocks), 1)
+	block, ok := l.ProviderBlocks["example.com/provider"]
+	assert.True(t, ok)
+	assert.Equal(t, block.Version, "foo")
+	assert.Equal(t, block.Constraints, "bar")
+	assert.Equal(t, block.Hashes, []string{"cat", "dog", "frog"})
+}
+
+func TestNewLockfileFromPathInvalidNotRealFile(t *testing.T) {
+  filePath := "/tmp/TestNewLockfileFromPathInvalidNotRealFile"
+  _, err := os.Stat(filePath)
+  assert.Contains(t, err.Error(), "no such file or directory")
+
+	l, err := NewLockfileFromPath(filePath)
 	assert.NotNil(t, err)
 	assert.Equal(t, len(l.ProviderBlocks), 0)
 }
