@@ -9,7 +9,7 @@ import (
 
 func main() {
 	filePath := "example.lock.hcl"
-	lockfile, err := lockfile.NewLockfile(filePath)
+	lockfile, err := lockfile.NewLockfileFromPath(filePath)
 	if err != nil {
 		fmt.Printf("Encountered an error while initializing lockfile %s: %s\n", filePath, err)
 		os.Exit(1)

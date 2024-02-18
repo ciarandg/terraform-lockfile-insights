@@ -20,23 +20,26 @@ type ProviderBlock struct {
 	hashes []string
 }
 
-func NewLockfile(filePath string) (Lockfile, error) {
-	sourceCode, err := os.ReadFile(filePath)
+func NewLockfile(contents []byte) (Lockfile, error) {
+	bodyBlock, err := bodyBlock(contents)
 	if err != nil {
 		return Lockfile{}, err
 	}
 
-	bodyBlock, err := bodyBlock(sourceCode)
-	if err != nil {
-		return Lockfile{}, err
-	}
-
-	providerBlocks, err := providerBlocks(sourceCode, bodyBlock)
+	providerBlocks, err := providerBlocks(contents, bodyBlock)
 	if err != nil {
 		return Lockfile{}, err
 	}
 
 	return Lockfile{providerBlocks}, nil
+}
+
+func NewLockfileFromPath(filePath string) (Lockfile, error) {
+	contents, err := os.ReadFile(filePath)
+	if err != nil {
+		return Lockfile{}, err
+	}
+	return NewLockfile(contents)
 }
 
 func bodyBlock(sourceCode []byte) (*sitter.Node, error) {
