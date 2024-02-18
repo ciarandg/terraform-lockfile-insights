@@ -18,8 +18,10 @@
         config,
         system,
         ...
-      }: {
-        packages.terraform-lockfile-insights = nixpkgs.legacyPackages.${system}.hello;
+      }: let
+        pkgs = nixpkgs.legacyPackages.${system};
+      in {
+        packages.terraform-lockfile-insights = pkgs.hello;
         packages.default = self.packages.${system}.terraform-lockfile-insights;
       };
     };
