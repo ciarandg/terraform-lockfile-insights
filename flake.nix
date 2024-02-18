@@ -21,7 +21,11 @@
       }: let
         pkgs = nixpkgs.legacyPackages.${system};
       in {
-        packages.terraform-lockfile-insights = pkgs.hello;
+        packages.terraform-lockfile-insights = pkgs.buildGoModule {
+          name = "terraform-lockfile-insights";
+          src = ./.;
+          vendorHash = "sha256-4Nw9kNG0VwrbNN1ai9xED00mPsmKTgu+pq5KpY+GU6w=";
+        };
         packages.default = self.packages.${system}.terraform-lockfile-insights;
       };
     };
