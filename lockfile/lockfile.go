@@ -16,9 +16,9 @@ type Lockfile struct {
 }
 
 type ProviderBlock struct {
-	version string
-	constraints string // optional, will be an empty string if not present
-	hashes []string
+	Version string
+	Constraints string // optional, will be an empty string if not present
+	Hashes []string
 }
 
 func NewLockfile(contents []byte) (Lockfile, error) {

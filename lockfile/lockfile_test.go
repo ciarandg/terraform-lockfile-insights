@@ -170,9 +170,9 @@ func TestNewLockfileSingleProvider(t *testing.T) {
 	assert.Equal(t, len(l.ProviderBlocks), 1)
 	block, ok := l.ProviderBlocks["example.com/provider"]
 	assert.True(t, ok)
-	assert.Equal(t, block.version, "foo")
-	assert.Equal(t, block.constraints, "bar")
-	assert.Equal(t, block.hashes, []string{"cat", "dog", "frog"})
+	assert.Equal(t, block.Version, "foo")
+	assert.Equal(t, block.Constraints, "bar")
+	assert.Equal(t, block.Hashes, []string{"cat", "dog", "frog"})
 }
 
 func TestNewLockfileMultipleProviders(t *testing.T) {
@@ -191,9 +191,9 @@ func TestNewLockfileMultipleProviders(t *testing.T) {
 	for i := 0; i < len(providerNames); i++ {
 		name := providerNames[i]
 		block := l.ProviderBlocks[name]
-		assert.Equal(t, block.version, providerVersions[i])
-		assert.Equal(t, block.constraints, providerConstraints[i])
-		assert.Equal(t, block.hashes, providerHashes[i])
+		assert.Equal(t, block.Version, providerVersions[i])
+		assert.Equal(t, block.Constraints, providerConstraints[i])
+		assert.Equal(t, block.Hashes, providerHashes[i])
 	}
 }
 
@@ -213,9 +213,9 @@ func TestNewLockfileInconsistentWhitespace(t *testing.T) {
 	for i := 0; i < len(providerNames); i++ {
 		name := providerNames[i]
 		block := l.ProviderBlocks[name]
-		assert.Equal(t, block.version, providerVersions[i])
-		assert.Equal(t, block.constraints, providerConstraints[i])
-		assert.Equal(t, block.hashes, providerHashes[i])
+		assert.Equal(t, block.Version, providerVersions[i])
+		assert.Equal(t, block.Constraints, providerConstraints[i])
+		assert.Equal(t, block.Hashes, providerHashes[i])
 	}
 }
 
@@ -225,9 +225,9 @@ func TestNewLockfileNoConstraints(t *testing.T) {
 	assert.Equal(t, len(l.ProviderBlocks), 1)
 	block, ok := l.ProviderBlocks["example.com/provider"]
 	assert.True(t, ok)
-	assert.Equal(t, block.version, "foo")
-	assert.Equal(t, block.constraints, "")
-	assert.Equal(t, block.hashes, []string{"cat", "dog", "frog"})
+	assert.Equal(t, block.Version, "foo")
+	assert.Equal(t, block.Constraints, "")
+	assert.Equal(t, block.Hashes, []string{"cat", "dog", "frog"})
 }
 
 func TestNewLockfileInvalidEmpty(t *testing.T) {

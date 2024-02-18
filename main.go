@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/ciarandg/provider-finder/filesystem"
+	"github.com/ciarandg/provider-finder/insights"
 	"github.com/ciarandg/provider-finder/lockfile"
 )
 
@@ -26,6 +27,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	lockfiles := map[string]lockfile.Lockfile{}
 	for i := 0; i < len(lockfilePaths); i++ {
 		filePath := lockfilePaths[i]
 		lockfile, err := lockfile.NewLockfileFromPath(filePath)
@@ -33,7 +35,8 @@ func main() {
 			fmt.Printf("Encountered an error while initializing lockfile %s: %s\n", filePath, err)
 			os.Exit(1)
 		}
-		fmt.Println(filePath)
-		fmt.Println(lockfile.ProviderBlocks)
+		lockfiles[filePath] = lockfile
 	}
+
+	fmt.Println(insights.GetInsights(lockfiles))
 }
