@@ -16,8 +16,8 @@ var rootCmd = &cobra.Command{
   Long: `A tool for surfacing details about Terraform dependencies across a codebase containing many lockfiles`,
   Run: func(cmd *cobra.Command, args []string) {
 	var dirPath string
-	if len(os.Args) > 1 {
-		dirPath = os.Args[1]
+	if len(args) > 0 {
+		dirPath = args[0]
 	} else {
 		wd, err := os.Getwd()
 		if err != nil {
