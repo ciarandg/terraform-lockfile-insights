@@ -1,6 +1,6 @@
 # terraform-lockfile-insights
 
-A utility for surfacing information about the Terraform providers used in a project. It recursively crawls a supplied directory, and parses each Terraform lockfile using `tree-sitter` to provide a report showing which lockfiles use which versions of which providers.
+A utility designed to surface information about the Terraform providers used within a project. It recursively crawls a specified directory, parsing each Terraform lockfile using `tree-sitter`, and provides a report showing which providers and versions are used in each file.
 
 Example output (using `--pretty`):
 ```json
