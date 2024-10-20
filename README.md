@@ -2,7 +2,7 @@
 
 A utility for surfacing information about the Terraform providers used in a project. It recursively crawls a supplied directory, and parses each Terraform lockfile using `tree-sitter` to provide a report showing which lockfiles use which versions of which providers.
 
-Example output:
+Example output (using `--pretty`):
 ```json
 {
   "registry.opentofu.org/cloudflare/cloudflare": {
